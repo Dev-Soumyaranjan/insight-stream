@@ -16,13 +16,16 @@ function ResultsPage() {
   const navigate = useNavigate();
   const [variation, setVariation] = useState(0);
   const [refineText, setRefineText] = useState("");
+  const [sort, setSort] = useState<"smart" | "relevance" | "latest">("smart");
+  const [duration, setDuration] = useState<"any" | "short" | "medium" | "long">("any");
+  const [pageToken, setPageToken] = useState<string | undefined>();
 
   useEffect(() => {
     if (!mode || !query) navigate({ to: "/" });
   }, [mode, query, navigate]);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["search", mode, query, refinement?.chips, refinement?.freeform, variation],
+    queryKey: ["search", mode, query, refinement?.chips, refinement?.freeform, variation, sort, duration, pageToken],
     enabled: !!mode && !!query,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -35,6 +38,9 @@ function ResultsPage() {
           chips: refinement?.chips ?? [],
           freeform: [refinement?.freeform ?? "", refineText].filter(Boolean).join(" "),
           variation,
+          sort,
+          duration,
+          pageToken,
         },
       }),
   });
@@ -51,7 +57,10 @@ function ResultsPage() {
             <ArrowLeft className="h-4 w-4" /> New search
           </Link>
           <button
-            onClick={() => setVariation((v) => v + 1)}
+            onClick={() => {
+              if (data?.nextPageToken) setPageToken(data.nextPageToken);
+              else setVariation((v) => v + 1);
+            }}
             disabled={isFetching}
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm hover:bg-accent disabled:opacity-50"
             title="Show different relevant videos"
@@ -75,14 +84,20 @@ function ResultsPage() {
             </div>
           )}
 
-          {data?.effectiveQuery && (
+          {(data?.contextMessage || data?.effectiveQuery) && (
             <div className="mt-3 flex items-start gap-2 rounded-md border border-border/60 bg-surface/40 px-3 py-2 text-xs text-muted-foreground">
               <SearchIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
               <span>
-                Searching YouTube for: <span className="text-foreground">{data.effectiveQuery}</span>
+                <span className="text-foreground">{data.contextMessage}</span>
+                {data.effectiveQuery ? <> · Query: <span className="text-foreground">{data.effectiveQuery}</span></> : null}
               </span>
             </div>
           )}
+
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <FilterGroup label="Sort by" value={sort} onChange={(v) => { setSort(v); setPageToken(undefined); setVariation(0); }} options={["smart", "relevance", "latest"]} />
+            <FilterGroup label="Duration" value={duration} onChange={(v) => { setDuration(v); setPageToken(undefined); setVariation(0); }} options={["any", "short", "medium", "long"]} />
+          </div>
 
           {mismatch.mismatched && mismatch.suggested && (
             <div className="mt-3 flex items-start gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
@@ -110,7 +125,7 @@ function ResultsPage() {
             />
             {refineText && (
               <button
-                onClick={() => refetch()}
+                onClick={() => { setPageToken(undefined); setVariation(0); refetch(); }}
                 className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
               >
                 Apply
@@ -153,6 +168,26 @@ function ResultsSkeleton() {
             <div className="zen-skeleton h-3 w-5/6" />
           </div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function FilterGroup<T extends string>({
+  label, value, onChange, options,
+}: { label: string; value: T; onChange: (value: T) => void; options: T[] }) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/60 p-1">
+      <span className="px-2 text-muted-foreground">{label}</span>
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onChange(option)}
+          className={"rounded-full px-2.5 py-1 capitalize transition-colors " + (value === option ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground")}
+        >
+          {option}
+        </button>
       ))}
     </div>
   );
