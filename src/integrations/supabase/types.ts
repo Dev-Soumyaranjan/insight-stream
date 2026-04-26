@@ -14,171 +14,28 @@ export type Database = {
   }
   public: {
     Tables: {
-      notes: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          timestamp_seconds: number
-          topic: string | null
-          updated_at: string
-          user_id: string
-          video_id: string
-          video_title: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          timestamp_seconds?: number
-          topic?: string | null
-          updated_at?: string
-          user_id: string
-          video_id: string
-          video_title?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          timestamp_seconds?: number
-          topic?: string | null
-          updated_at?: string
-          user_id?: string
-          video_id?: string
-          video_title?: string | null
-        }
-        Relationships: []
-      }
-      playlist_items: {
-        Row: {
-          channel: string | null
-          created_at: string
-          duration_seconds: number | null
-          id: string
-          playlist_id: string
-          position: number
-          thumbnail: string | null
-          title: string | null
-          user_id: string
-          video_id: string
-        }
-        Insert: {
-          channel?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          playlist_id: string
-          position?: number
-          thumbnail?: string | null
-          title?: string | null
-          user_id: string
-          video_id: string
-        }
-        Update: {
-          channel?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          playlist_id?: string
-          position?: number
-          thumbnail?: string | null
-          title?: string | null
-          user_id?: string
-          video_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "playlist_items_playlist_id_fkey"
-            columns: ["playlist_id"]
-            isOneToOne: false
-            referencedRelation: "playlists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      playlists: {
-        Row: {
-          created_at: string
-          id: string
-          kind: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          kind?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          kind?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      preferences: {
-        Row: {
-          created_at: string
-          daily_watch_limit_min: number
-          data_tracking: boolean
-          default_mode: string | null
-          id: string
-          theme: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          daily_watch_limit_min?: number
-          data_tracking?: boolean
-          default_mode?: string | null
-          id?: string
-          theme?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          daily_watch_limit_min?: number
-          data_tracking?: boolean
-          default_mode?: string | null
-          id?: string
-          theme?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
-          avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
+          onboarding_complete: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_complete?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
-          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_complete?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -186,118 +43,200 @@ export type Database = {
       }
       saved_videos: {
         Row: {
-          channel: string | null
+          channel_title: string
           created_at: string
-          duration_seconds: number | null
+          duration_seconds: number
+          final_intent: Database["public"]["Enums"]["zen_intent"]
           id: string
-          thumbnail: string | null
-          title: string | null
-          user_id: string
-          video_id: string
-        }
-        Insert: {
-          channel?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          thumbnail?: string | null
-          title?: string | null
-          user_id: string
-          video_id: string
-        }
-        Update: {
-          channel?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          thumbnail?: string | null
-          title?: string | null
-          user_id?: string
-          video_id?: string
-        }
-        Relationships: []
-      }
-      video_feedback: {
-        Row: {
-          created_at: string
-          feedback: string
-          id: string
+          thumbnail_url: string | null
+          title: string
           updated_at: string
           user_id: string
-          video_id: string
+          youtube_video_id: string
         }
         Insert: {
+          channel_title: string
           created_at?: string
-          feedback: string
+          duration_seconds?: number
+          final_intent?: Database["public"]["Enums"]["zen_intent"]
           id?: string
+          thumbnail_url?: string | null
+          title: string
           updated_at?: string
           user_id: string
-          video_id: string
+          youtube_video_id: string
         }
         Update: {
+          channel_title?: string
           created_at?: string
-          feedback?: string
+          duration_seconds?: number
+          final_intent?: Database["public"]["Enums"]["zen_intent"]
           id?: string
+          thumbnail_url?: string | null
+          title?: string
           updated_at?: string
           user_id?: string
-          video_id?: string
+          youtube_video_id?: string
         }
         Relationships: []
       }
-      watch_history: {
+      user_preferences: {
         Row: {
-          category: string | null
-          channel: string | null
-          duration_seconds: number | null
-          effective_seconds: number
-          final_intent: string | null
+          created_at: string
+          daily_limit_minutes: number
           id: string
-          inferred_intent: string | null
-          mode: string
-          playlist_id: string | null
-          seek_count: number
-          thumbnail: string | null
-          title: string | null
+          preferred_intent: Database["public"]["Enums"]["zen_intent"] | null
+          privacy_mode: boolean
+          session_reminders: boolean
+          tracking_enabled: boolean
+          updated_at: string
           user_id: string
-          video_id: string
-          watch_seconds: number
-          watched_at: string
         }
         Insert: {
-          category?: string | null
-          channel?: string | null
-          duration_seconds?: number | null
-          effective_seconds?: number
-          final_intent?: string | null
+          created_at?: string
+          daily_limit_minutes?: number
           id?: string
-          inferred_intent?: string | null
-          mode: string
-          playlist_id?: string | null
-          seek_count?: number
-          thumbnail?: string | null
-          title?: string | null
+          preferred_intent?: Database["public"]["Enums"]["zen_intent"] | null
+          privacy_mode?: boolean
+          session_reminders?: boolean
+          tracking_enabled?: boolean
+          updated_at?: string
           user_id: string
-          video_id: string
-          watch_seconds?: number
-          watched_at?: string
         }
         Update: {
-          category?: string | null
-          channel?: string | null
-          duration_seconds?: number | null
-          effective_seconds?: number
-          final_intent?: string | null
+          created_at?: string
+          daily_limit_minutes?: number
           id?: string
-          inferred_intent?: string | null
-          mode?: string
-          playlist_id?: string | null
-          seek_count?: number
-          thumbnail?: string | null
-          title?: string | null
+          preferred_intent?: Database["public"]["Enums"]["zen_intent"] | null
+          privacy_mode?: boolean
+          session_reminders?: boolean
+          tracking_enabled?: boolean
+          updated_at?: string
           user_id?: string
-          video_id?: string
-          watch_seconds?: number
+        }
+        Relationships: []
+      }
+      video_history: {
+        Row: {
+          channel_id: string | null
+          channel_title: string
+          created_at: string
+          final_intent: Database["public"]["Enums"]["zen_intent"]
+          id: string
+          inferred_intent: Database["public"]["Enums"]["zen_intent"]
+          skip_count: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          user_override_intent: Database["public"]["Enums"]["zen_intent"] | null
+          watched_at: string
+          watched_duration: number
+          youtube_video_id: string
+        }
+        Insert: {
+          channel_id?: string | null
+          channel_title: string
+          created_at?: string
+          final_intent?: Database["public"]["Enums"]["zen_intent"]
+          id?: string
+          inferred_intent?: Database["public"]["Enums"]["zen_intent"]
+          skip_count?: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          user_override_intent?:
+            | Database["public"]["Enums"]["zen_intent"]
+            | null
           watched_at?: string
+          watched_duration?: number
+          youtube_video_id: string
+        }
+        Update: {
+          channel_id?: string | null
+          channel_title?: string
+          created_at?: string
+          final_intent?: Database["public"]["Enums"]["zen_intent"]
+          id?: string
+          inferred_intent?: Database["public"]["Enums"]["zen_intent"]
+          skip_count?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          user_override_intent?:
+            | Database["public"]["Enums"]["zen_intent"]
+            | null
+          watched_at?: string
+          watched_duration?: number
+          youtube_video_id?: string
+        }
+        Relationships: []
+      }
+      video_notes: {
+        Row: {
+          channel_title: string | null
+          content: string
+          created_at: string
+          id: string
+          timestamp_seconds: number
+          title: string
+          topic: string | null
+          updated_at: string
+          user_id: string
+          youtube_video_id: string
+        }
+        Insert: {
+          channel_title?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          timestamp_seconds?: number
+          title: string
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+          youtube_video_id: string
+        }
+        Update: {
+          channel_title?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          timestamp_seconds?: number
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+          youtube_video_id?: string
+        }
+        Relationships: []
+      }
+      video_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction: Database["public"]["Enums"]["video_reaction_type"]
+          updated_at: string
+          user_id: string
+          youtube_video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction: Database["public"]["Enums"]["video_reaction_type"]
+          updated_at?: string
+          user_id: string
+          youtube_video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction?: Database["public"]["Enums"]["video_reaction_type"]
+          updated_at?: string
+          user_id?: string
+          youtube_video_id?: string
         }
         Relationships: []
       }
@@ -309,7 +248,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      video_reaction_type: "like" | "dislike"
+      zen_intent: "Learning" | "Entertainment" | "Other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -436,6 +376,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      video_reaction_type: ["like", "dislike"],
+      zen_intent: ["Learning", "Entertainment", "Other"],
+    },
   },
 } as const
