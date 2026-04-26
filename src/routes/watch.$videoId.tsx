@@ -28,6 +28,21 @@ export const Route = createFileRoute("/watch/$videoId")({
   component: WatchPage,
 });
 
+type CloudIntent = "Learning" | "Entertainment" | "Other";
+type CloudReaction = "like" | "dislike";
+
+function modeToCloudIntent(mode: Mode | null | undefined): CloudIntent {
+  if (mode === "learn") return "Learning";
+  if (mode === "relax") return "Entertainment";
+  return "Other";
+}
+
+function reactionToFeedback(reaction: CloudReaction | null | undefined): "helpful" | "not_useful" | null {
+  if (reaction === "like") return "helpful";
+  if (reaction === "dislike") return "not_useful";
+  return null;
+}
+
 function WatchPage() {
   const { videoId } = Route.useParams();
   const search = Route.useSearch();
@@ -82,7 +97,7 @@ function WatchPage() {
       .from("saved_videos")
       .select("id")
       .eq("user_id", user.id)
-      .eq("video_id", videoId)
+      .eq("youtube_video_id", videoId)
       .maybeSingle()
       .then(({ data }) => {
         if (!cancelled) setSaved(!!data);
@@ -95,13 +110,13 @@ function WatchPage() {
     if (!user) return;
     let cancelled = false;
     supabase
-      .from("video_feedback")
-      .select("feedback")
+      .from("video_reactions")
+      .select("reaction")
       .eq("user_id", user.id)
-      .eq("video_id", videoId)
+      .eq("youtube_video_id", videoId)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled && data) setFeedback(data.feedback as "helpful" | "not_useful");
+        if (!cancelled && data) setFeedback(reactionToFeedback(data.reaction));
       });
     return () => { cancelled = true; };
   }, [user, videoId]);
