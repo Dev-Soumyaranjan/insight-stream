@@ -176,11 +176,10 @@ function HomePage() {
         </div>
 
         {!user && (
-          <div className="mx-auto mt-20 max-w-md text-center text-sm text-muted-foreground">
-            <Link to="/login" search={{ redirect: "/" }} className="text-primary hover:underline">
-              Sign in
-            </Link>{" "}
-            to save notes, history, and insights.
+          <div className="mx-auto mt-20 max-w-md text-center text-xs text-muted-foreground">
+            Tip: tap the account icon in the top right to{" "}
+            <span className="text-foreground/80">sign in with Google</span> and unlock notes,
+            history, and personal insights.
           </div>
         )}
       </div>

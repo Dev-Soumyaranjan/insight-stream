@@ -50,80 +50,6 @@ export type Database = {
         }
         Relationships: []
       }
-      playlist_items: {
-        Row: {
-          channel: string | null
-          created_at: string
-          duration_seconds: number | null
-          id: string
-          playlist_id: string
-          position: number
-          thumbnail: string | null
-          title: string | null
-          user_id: string
-          video_id: string
-        }
-        Insert: {
-          channel?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          playlist_id: string
-          position?: number
-          thumbnail?: string | null
-          title?: string | null
-          user_id: string
-          video_id: string
-        }
-        Update: {
-          channel?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          playlist_id?: string
-          position?: number
-          thumbnail?: string | null
-          title?: string | null
-          user_id?: string
-          video_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "playlist_items_playlist_id_fkey"
-            columns: ["playlist_id"]
-            isOneToOne: false
-            referencedRelation: "playlists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      playlists: {
-        Row: {
-          created_at: string
-          id: string
-          kind: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          kind?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          kind?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       preferences: {
         Row: {
           created_at: string
@@ -248,16 +174,17 @@ export type Database = {
         Row: {
           category: string | null
           channel: string | null
+          created_at: string
           duration_seconds: number | null
           effective_seconds: number
           final_intent: string | null
           id: string
           inferred_intent: string | null
           mode: string
-          playlist_id: string | null
           seek_count: number
           thumbnail: string | null
           title: string | null
+          updated_at: string
           user_id: string
           video_id: string
           watch_seconds: number
@@ -266,16 +193,17 @@ export type Database = {
         Insert: {
           category?: string | null
           channel?: string | null
+          created_at?: string
           duration_seconds?: number | null
           effective_seconds?: number
           final_intent?: string | null
           id?: string
           inferred_intent?: string | null
           mode: string
-          playlist_id?: string | null
           seek_count?: number
           thumbnail?: string | null
           title?: string | null
+          updated_at?: string
           user_id: string
           video_id: string
           watch_seconds?: number
@@ -284,16 +212,17 @@ export type Database = {
         Update: {
           category?: string | null
           channel?: string | null
+          created_at?: string
           duration_seconds?: number | null
           effective_seconds?: number
           final_intent?: string | null
           id?: string
           inferred_intent?: string | null
           mode?: string
-          playlist_id?: string | null
           seek_count?: number
           thumbnail?: string | null
           title?: string | null
+          updated_at?: string
           user_id?: string
           video_id?: string
           watch_seconds?: number
