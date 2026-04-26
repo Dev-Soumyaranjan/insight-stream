@@ -77,7 +77,7 @@ function HomePage() {
     setMode(selected);
     setQuery(v);
     setConfirming(false);
-    if (selected === "find") navigate({ to: "/results" });
+    if (selected === "find") navigate({ to: "/results", search: { playlistId: "", playlistTitle: "" } });
     else navigate({ to: "/refine/$mode", params: { mode: selected } });
   };
 

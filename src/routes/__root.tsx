@@ -52,11 +52,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -81,7 +81,7 @@ function RootComponent() {
 }
 
 function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { location } = useRouterState();
   const onAuthPage = location.pathname.startsWith("/login");
   const [accountOpen, setAccountOpen] = useState(false);
@@ -108,6 +108,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const profileImage = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {!onAuthPage && (
@@ -118,7 +120,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <span className="font-semibold tracking-tight">ZenTube</span>
             </Link>
             <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-              {user && (
+              {!loading && user && (
                 <>
                   <Link to="/dashboard" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground" activeProps={{ className: "text-foreground bg-accent" }}>
                     <LayoutDashboard className="h-4 w-4" /> <span className="hidden sm:inline">Insights</span>
@@ -132,9 +134,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   <Link to="/history" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground" activeProps={{ className: "text-foreground bg-accent" }}>
                     <History className="h-4 w-4" /> <span className="hidden sm:inline">History</span>
                   </Link>
-                  <Link to="/settings" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground" activeProps={{ className: "text-foreground bg-accent" }}>
-                    <Settings className="h-4 w-4" /> <span className="hidden sm:inline">Settings</span>
-                  </Link>
                 </>
               )}
               <div ref={accountRef} className="relative ml-1">
@@ -145,8 +144,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   aria-haspopup="menu"
                   aria-expanded={accountOpen}
                 >
-                  {user?.user_metadata?.avatar_url ? (
-                    <img src={user.user_metadata.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" referrerPolicy="no-referrer" />
+                  {profileImage ? (
+                    <img src={profileImage} alt="" className="h-6 w-6 rounded-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <UserCircle className="h-6 w-6 text-muted-foreground" />
                   )}
@@ -154,7 +153,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 </button>
                 {accountOpen && (
                   <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-popover/95 p-1 shadow-2xl backdrop-blur">
-                    {user ? (
+                    {!loading && user ? (
                       <>
                         <div className="px-3 py-3">
                           <div className="truncate text-sm font-medium text-foreground">{user.user_metadata?.full_name || user.email}</div>

@@ -309,6 +309,7 @@ function WatchPage() {
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           to="/results"
+          search={{ playlistId: "", playlistTitle: "" }}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" /> Back to results
@@ -485,7 +486,7 @@ function EndScreen() {
       <p className="mt-1 text-sm text-muted-foreground">No autoplay. What's next?</p>
       <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
         <button
-          onClick={() => navigate({ to: "/results" })}
+          onClick={() => navigate({ to: "/results", search: { playlistId: "", playlistTitle: "" } })}
           className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium hover:bg-accent"
         >
           Watch another

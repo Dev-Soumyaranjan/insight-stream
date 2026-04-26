@@ -444,7 +444,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
     >
       <div
         ref={mountRef}
-        className="zen-yt-mount absolute inset-0 h-full w-full"
+        className="zen-yt-mount zen-yt-shield absolute inset-0 h-full w-full"
       />
 
       {/* Click-to-toggle overlay (excludes the controls area) */}
@@ -509,7 +509,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
           }}>
             <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/25 transition-all group-hover:h-1.5">
               <div
-                className="absolute left-0 top-0 h-full rounded-full bg-[oklch(0.78_0.12_158)]"
+                className="absolute left-0 top-0 h-full rounded-full bg-primary"
                 style={{ width: `${progressPct}%` }}
               />
               <div
@@ -560,7 +560,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
                 onClick={toggleCC}
                 disabled={!ccAvailable}
               >
-                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-[oklch(0.78_0.12_158)]" : "")} />
+                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-primary" : "")} />
               </CtrlBtn>
               <CtrlBtn label="Settings" onClick={() => setSettingsOpen((v) => !v)}>
                 <SettingsIcon className="h-5 w-5" />
@@ -622,6 +622,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
       )}
 
       <style>{`
+        .zen-yt-shield iframe { pointer-events: none; }
         .zen-vol {
           appearance: none;
           height: 4px;
@@ -682,7 +683,7 @@ function SettingsRow({ active, onClick, children }: { active: boolean; onClick: 
   return (
     <button
       onClick={onClick}
-      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-[oklch(0.82_0.12_158)]" : "")}
+      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-primary" : "")}
     >
       <span>{children}</span>
       {active && <span>✓</span>}
