@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import {
   Play, Pause, Volume2, VolumeX, Volume1, Maximize2, Minimize2,
-  Settings as SettingsIcon, RotateCcw, RotateCw, Subtitles, AlertTriangle, ExternalLink,
+  Settings as SettingsIcon, RotateCcw, RotateCw, Subtitles, AlertTriangle,
 } from "lucide-react";
 
 declare global {
