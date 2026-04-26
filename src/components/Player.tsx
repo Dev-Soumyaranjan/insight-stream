@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import {
   Play, Pause, Volume2, VolumeX, Volume1, Maximize2, Minimize2,
-  Settings as SettingsIcon, RotateCcw, RotateCw, Subtitles, AlertTriangle, ExternalLink,
+  Settings as SettingsIcon, RotateCcw, RotateCw, Subtitles, AlertTriangle,
 } from "lucide-react";
 
 declare global {
@@ -471,16 +471,8 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
           <AlertTriangle className="h-8 w-8 text-white/70" />
           <div className="text-base font-medium">This video can't be played here</div>
           <p className="max-w-md text-sm text-white/60">
-            The owner has disabled embedded playback. You can still watch it on YouTube.
+            The owner has disabled embedded playback, so ZenTube won't open an external YouTube rabbit hole from here.
           </p>
-          <a
-            href={`https://www.youtube.com/watch?v=${videoId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-medium text-black hover:opacity-90"
-          >
-            <ExternalLink className="h-4 w-4" /> Watch on YouTube
-          </a>
         </div>
       )}
 
@@ -509,11 +501,11 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
           }}>
             <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/25 transition-all group-hover:h-1.5">
               <div
-                className="absolute left-0 top-0 h-full rounded-full bg-[oklch(0.78_0.12_158)]"
+                className="absolute left-0 top-0 h-full rounded-full bg-primary"
                 style={{ width: `${progressPct}%` }}
               />
               <div
-                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow transition-opacity group-hover:opacity-100"
+                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary opacity-0 shadow transition-opacity group-hover:opacity-100"
                 style={{ left: `${progressPct}%` }}
               />
             </div>
@@ -560,7 +552,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
                 onClick={toggleCC}
                 disabled={!ccAvailable}
               >
-                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-[oklch(0.78_0.12_158)]" : "")} />
+                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-primary" : "")} />
               </CtrlBtn>
               <CtrlBtn label="Settings" onClick={() => setSettingsOpen((v) => !v)}>
                 <SettingsIcon className="h-5 w-5" />
@@ -682,7 +674,7 @@ function SettingsRow({ active, onClick, children }: { active: boolean; onClick: 
   return (
     <button
       onClick={onClick}
-      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-[oklch(0.82_0.12_158)]" : "")}
+      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-primary" : "")}
     >
       <span>{children}</span>
       {active && <span>✓</span>}
