@@ -28,6 +28,21 @@ export const Route = createFileRoute("/watch/$videoId")({
   component: WatchPage,
 });
 
+type CloudIntent = "Learning" | "Entertainment" | "Other";
+type CloudReaction = "like" | "dislike";
+
+function modeToCloudIntent(mode: Mode | null | undefined): CloudIntent {
+  if (mode === "learn") return "Learning";
+  if (mode === "relax") return "Entertainment";
+  return "Other";
+}
+
+function reactionToFeedback(reaction: CloudReaction | null | undefined): "helpful" | "not_useful" | null {
+  if (reaction === "like") return "helpful";
+  if (reaction === "dislike") return "not_useful";
+  return null;
+}
+
 function WatchPage() {
   const { videoId } = Route.useParams();
   const search = Route.useSearch();
@@ -82,7 +97,7 @@ function WatchPage() {
       .from("saved_videos")
       .select("id")
       .eq("user_id", user.id)
-      .eq("video_id", videoId)
+      .eq("youtube_video_id", videoId)
       .maybeSingle()
       .then(({ data }) => {
         if (!cancelled) setSaved(!!data);
@@ -95,13 +110,13 @@ function WatchPage() {
     if (!user) return;
     let cancelled = false;
     supabase
-      .from("video_feedback")
-      .select("feedback")
+      .from("video_reactions")
+      .select("reaction")
       .eq("user_id", user.id)
-      .eq("video_id", videoId)
+      .eq("youtube_video_id", videoId)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled && data) setFeedback(data.feedback as "helpful" | "not_useful");
+        if (!cancelled && data) setFeedback(reactionToFeedback(data.reaction));
       });
     return () => { cancelled = true; };
   }, [user, videoId]);
@@ -142,38 +157,34 @@ function WatchPage() {
     lastSyncedRef.current = sec;
 
     if (!historyIdRef.current) {
-      // Upsert on (user_id, video_id) so re-watches update the same row instead of creating duplicates
+      // Upsert on (user_id, youtube_video_id) so re-watches update the same row instead of creating duplicates
       const { data, error } = await supabase
-        .from("watch_history")
+        .from("video_history")
         .upsert(
           {
             user_id: user.id,
-            video_id: videoId,
-            title: meta?.title || search.title || null,
-            channel: meta?.channel || search.channel || null,
-            thumbnail: search.thumbnail || null,
-            mode: sessionMode ?? finalIntent,
-            final_intent: finalIntent,
-            inferred_intent: inferred,
-            watch_seconds: sec,
-            effective_seconds: eff,
-            seek_count: seekCountRef.current,
-            duration_seconds: meta?.durationSeconds || search.duration || null,
+            youtube_video_id: videoId,
+            title: meta?.title || search.title || "Untitled",
+            channel_title: meta?.channel || search.channel || "Unknown channel",
+            thumbnail_url: search.thumbnail || null,
+            final_intent: modeToCloudIntent(finalIntent),
+            inferred_intent: modeToCloudIntent(inferred),
+            watched_duration: eff || sec,
+            skip_count: seekCountRef.current,
             watched_at: new Date().toISOString(),
           },
-          { onConflict: "user_id,video_id" },
+          { onConflict: "user_id,youtube_video_id" },
         )
         .select("id")
         .single();
       if (!error && data) historyIdRef.current = data.id;
     } else {
       await supabase
-        .from("watch_history")
+        .from("video_history")
         .update({
-          watch_seconds: sec,
-          effective_seconds: eff,
-          seek_count: seekCountRef.current,
-          final_intent: finalIntent,
+          watched_duration: eff || sec,
+          skip_count: seekCountRef.current,
+          final_intent: modeToCloudIntent(finalIntent),
           watched_at: new Date().toISOString(),
         })
         .eq("id", historyIdRef.current);
@@ -200,11 +211,10 @@ function WatchPage() {
     return () => {
       if (user && historyIdRef.current) {
         supabase
-          .from("watch_history")
+          .from("video_history")
           .update({
-            watch_seconds: Math.round(watchSecondsRef.current),
-            effective_seconds: effectiveSecondsRef.current,
-            seek_count: seekCountRef.current,
+            watched_duration: effectiveSecondsRef.current || Math.round(watchSecondsRef.current),
+            skip_count: seekCountRef.current,
           })
           .eq("id", historyIdRef.current)
           .then(() => {});
@@ -229,17 +239,18 @@ function WatchPage() {
       return;
     }
     if (saved) {
-      await supabase.from("saved_videos").delete().eq("user_id", user.id).eq("video_id", videoId);
+      await supabase.from("saved_videos").delete().eq("user_id", user.id).eq("youtube_video_id", videoId);
       setSaved(false);
       toast.success("Removed from library");
     } else {
       await supabase.from("saved_videos").insert({
         user_id: user.id,
-        video_id: videoId,
+        youtube_video_id: videoId,
         title: meta?.title || search.title,
-        channel: meta?.channel || search.channel,
-        thumbnail: search.thumbnail,
+        channel_title: meta?.channel || search.channel || "Unknown channel",
+        thumbnail_url: search.thumbnail,
         duration_seconds: meta?.durationSeconds || search.duration,
+        final_intent: modeToCloudIntent(finalIntent),
       });
       setSaved(true);
       toast.success("Saved to library");
@@ -266,11 +277,11 @@ function WatchPage() {
     const next = feedback === kind ? null : kind;
     setFeedback(next);
     if (next === null) {
-      await supabase.from("video_feedback").delete().eq("user_id", user.id).eq("video_id", videoId);
+      await supabase.from("video_reactions").delete().eq("user_id", user.id).eq("youtube_video_id", videoId);
     } else {
-      await supabase.from("video_feedback").upsert(
-        { user_id: user.id, video_id: videoId, feedback: next },
-        { onConflict: "user_id,video_id" },
+      await supabase.from("video_reactions").upsert(
+        { user_id: user.id, youtube_video_id: videoId, reaction: next === "helpful" ? "like" : "dislike" },
+        { onConflict: "user_id,youtube_video_id" },
       );
     }
   };
@@ -279,8 +290,8 @@ function WatchPage() {
     setOverride(m);
     if (user && historyIdRef.current) {
       await supabase
-        .from("watch_history")
-        .update({ final_intent: m })
+        .from("video_history")
+        .update({ final_intent: modeToCloudIntent(m), user_override_intent: modeToCloudIntent(m) })
         .eq("id", historyIdRef.current);
     }
     toast.success(`Marked as ${MODES[m].label}`);

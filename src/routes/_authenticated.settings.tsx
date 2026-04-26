@@ -7,16 +7,18 @@ import { toast } from "sonner";
 import { User, Clock, Palette, Shield, LogOut, Trash2, Mail } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type CloudIntent = "Learning" | "Entertainment" | "Other";
+
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — ZenTube" }] }),
   component: SettingsPage,
 });
 
 type Prefs = {
-  daily_watch_limit_min: number;
-  default_mode: string | null;
+  daily_limit_minutes: number;
+  preferred_intent: CloudIntent | null;
   theme: string;
-  data_tracking: boolean;
+  tracking_enabled: boolean;
 };
 
 function SettingsPage() {
@@ -29,20 +31,21 @@ function SettingsPage() {
   useEffect(() => {
     if (!user) return;
     supabase
-      .from("preferences")
-      .select("daily_watch_limit_min, default_mode, theme, data_tracking")
+      .from("user_preferences")
+      .select("daily_limit_minutes, preferred_intent, tracking_enabled")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          setPrefs(data as Prefs);
-          applyTheme(data.theme);
+          const next = { ...(data as Omit<Prefs, "theme">), theme: localStorage.getItem("zen.theme") || "dark" };
+          setPrefs(next);
+          applyTheme(next.theme);
         } else {
           setPrefs({
-            daily_watch_limit_min: 60,
-            default_mode: null,
+            daily_limit_minutes: 60,
+            preferred_intent: null,
             theme: "dark",
-            data_tracking: true,
+            tracking_enabled: true,
           });
         }
       });
@@ -80,9 +83,10 @@ function SettingsPage() {
   const save = async () => {
     if (!user || !prefs) return;
     setSaving(true);
+    const { theme, ...cloudPrefs } = prefs;
     const [{ error: pErr }, { error: pfErr }] = await Promise.all([
-      supabase.from("preferences").upsert(
-        { user_id: user.id, ...prefs },
+      supabase.from("user_preferences").upsert(
+        { user_id: user.id, ...cloudPrefs },
         { onConflict: "user_id" },
       ),
       supabase
@@ -92,6 +96,7 @@ function SettingsPage() {
     ]);
     try {
       localStorage.setItem("zen.sessionReminders", sessionReminders ? "on" : "off");
+      localStorage.setItem("zen.theme", theme);
     } catch {}
     setSaving(false);
     if (pErr || pfErr) {
@@ -105,7 +110,7 @@ function SettingsPage() {
   const clearHistory = async () => {
     if (!user) return;
     if (!confirm("Clear your entire watch history? This cannot be undone.")) return;
-    const { error } = await supabase.from("watch_history").delete().eq("user_id", user.id);
+    const { error } = await supabase.from("video_history").delete().eq("user_id", user.id);
     if (error) toast.error("Could not clear history");
     else toast.success("History cleared");
   };
@@ -157,15 +162,15 @@ function SettingsPage() {
 
         {/* Usage Control */}
         <SectionGroup icon={Clock} title="Usage control" description="Gentle reminders, never blocks.">
-          <Field label={`Daily watch limit · ${prefs.daily_watch_limit_min} min`}>
+          <Field label={`Daily watch limit · ${prefs.daily_limit_minutes} min`}>
             <input
               type="range"
               min={10}
               max={240}
               step={5}
-              value={prefs.daily_watch_limit_min}
+              value={prefs.daily_limit_minutes}
               onChange={(e) =>
-                setPrefs({ ...prefs, daily_watch_limit_min: parseInt(e.target.value, 10) })
+                setPrefs({ ...prefs, daily_limit_minutes: parseInt(e.target.value, 10) })
               }
               className="w-full"
             />
@@ -187,16 +192,16 @@ function SettingsPage() {
           <Field label="Default intent">
             <div className="flex flex-wrap gap-2">
               <Chip
-                active={prefs.default_mode === null}
-                onClick={() => setPrefs({ ...prefs, default_mode: null })}
+                  active={prefs.preferred_intent === null}
+                  onClick={() => setPrefs({ ...prefs, preferred_intent: null })}
               >
                 Always ask
               </Chip>
               {(Object.keys(MODES) as Mode[]).map((m) => (
                 <Chip
                   key={m}
-                  active={prefs.default_mode === m}
-                  onClick={() => setPrefs({ ...prefs, default_mode: m })}
+                  active={prefs.preferred_intent === modeToCloudIntent(m)}
+                  onClick={() => setPrefs({ ...prefs, preferred_intent: modeToCloudIntent(m) })}
                 >
                   {MODES[m].emoji} {MODES[m].label}
                 </Chip>
@@ -223,8 +228,8 @@ function SettingsPage() {
           <Toggle
             label="Track my watch history"
             description="Powers your insights. Disable to stop saving any history."
-            checked={prefs.data_tracking}
-            onChange={(v) => setPrefs({ ...prefs, data_tracking: v })}
+            checked={prefs.tracking_enabled}
+            onChange={(v) => setPrefs({ ...prefs, tracking_enabled: v })}
           />
           <div className="pt-2">
             <button
@@ -248,6 +253,12 @@ function SettingsPage() {
       </div>
     </div>
   );
+}
+
+function modeToCloudIntent(mode: Mode): CloudIntent {
+  if (mode === "learn") return "Learning";
+  if (mode === "relax") return "Entertainment";
+  return "Other";
 }
 
 function SectionGroup({

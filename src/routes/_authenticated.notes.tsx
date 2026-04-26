@@ -16,8 +16,8 @@ type NoteRow = {
   content: string;
   topic: string | null;
   timestamp_seconds: number;
-  video_id: string;
-  video_title: string | null;
+  youtube_video_id: string;
+  title: string;
   created_at: string;
 };
 
@@ -39,8 +39,8 @@ function NotesPage() {
   useEffect(() => {
     if (!user) return;
     supabase
-      .from("notes")
-      .select("id, content, topic, timestamp_seconds, video_id, video_title, created_at")
+      .from("video_notes")
+      .select("id, content, topic, timestamp_seconds, youtube_video_id, title, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }) => setRows((data || []) as NoteRow[]));
@@ -59,12 +59,12 @@ function NotesPage() {
     for (const n of rows) {
       if (topicFilter && n.topic !== topicFilter) continue;
       if (ql) {
-        const hay = `${n.content} ${n.topic || ""} ${n.video_title || ""}`.toLowerCase();
+        const hay = `${n.content} ${n.topic || ""} ${n.title || ""}`.toLowerCase();
         if (!hay.includes(ql)) continue;
       }
-      const g = map.get(n.video_id) ?? {
-        videoId: n.video_id,
-        videoTitle: n.video_title || "Untitled video",
+      const g = map.get(n.youtube_video_id) ?? {
+        videoId: n.youtube_video_id,
+        videoTitle: n.title || "Untitled video",
         notes: [],
         topics: new Set<string>(),
         latest: n.created_at,
@@ -72,7 +72,7 @@ function NotesPage() {
       g.notes.push(n);
       if (n.topic) g.topics.add(n.topic);
       if (n.created_at > g.latest) g.latest = n.created_at;
-      map.set(n.video_id, g);
+      map.set(n.youtube_video_id, g);
     }
     const arr = Array.from(map.values());
     arr.forEach((g) => g.notes.sort((a, b) => a.timestamp_seconds - b.timestamp_seconds));
@@ -170,7 +170,7 @@ function NotesPage() {
                       <Link
                         key={n.id}
                         to="/watch/$videoId"
-                        params={{ videoId: n.video_id }}
+                        params={{ videoId: n.youtube_video_id }}
                         search={{ title: g.videoTitle, channel: "", duration: 0, thumbnail: "", t: n.timestamp_seconds, intent: "" }}
                         className="group flex items-start gap-3 rounded-md border border-border/60 bg-background p-3 hover:border-primary/40"
                       >

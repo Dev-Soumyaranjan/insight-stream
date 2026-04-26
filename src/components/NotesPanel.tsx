@@ -30,10 +30,10 @@ export function NotesPanel({ videoId, videoTitle, getCurrentSeconds, onJumpTo }:
   useEffect(() => {
     if (!user) return;
     supabase
-      .from("notes")
+      .from("video_notes")
       .select("id, content, timestamp_seconds, topic, created_at")
       .eq("user_id", user.id)
-      .eq("video_id", videoId)
+      .eq("youtube_video_id", videoId)
       .order("timestamp_seconds", { ascending: true })
       .then(({ data }) => setNotes((data || []) as Note[]));
   }, [user, videoId]);
@@ -48,11 +48,11 @@ export function NotesPanel({ videoId, videoTitle, getCurrentSeconds, onJumpTo }:
     setLoading(true);
     const ts = Math.round(getCurrentSeconds());
     const { data, error } = await supabase
-      .from("notes")
+      .from("video_notes")
       .insert({
         user_id: user.id,
-        video_id: videoId,
-        video_title: videoTitle,
+        youtube_video_id: videoId,
+        title: videoTitle,
         timestamp_seconds: ts,
         content: c,
         topic: topic.trim() || null,
@@ -71,7 +71,7 @@ export function NotesPanel({ videoId, videoTitle, getCurrentSeconds, onJumpTo }:
 
   const remove = async (id: string) => {
     setNotes((n) => n.filter((x) => x.id !== id));
-    await supabase.from("notes").delete().eq("id", id);
+    await supabase.from("video_notes").delete().eq("id", id);
   };
 
   return (
