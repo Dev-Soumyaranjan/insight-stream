@@ -224,8 +224,9 @@ function WatchPage() {
 
   const toggleSave = async () => {
     if (!user) {
-      toast.message("Sign in to save videos");
-      navigate({ to: "/login", search: { redirect: window.location.pathname } });
+      toast.message("Sign in to save videos", {
+        description: "Use the account icon in the top right.",
+      });
       return;
     }
     if (saved) {
