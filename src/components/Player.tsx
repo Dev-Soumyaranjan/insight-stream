@@ -552,7 +552,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
                 onClick={toggleCC}
                 disabled={!ccAvailable}
               >
-                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-[oklch(0.78_0.12_158)]" : "")} />
+                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-primary" : "")} />
               </CtrlBtn>
               <CtrlBtn label="Settings" onClick={() => setSettingsOpen((v) => !v)}>
                 <SettingsIcon className="h-5 w-5" />
