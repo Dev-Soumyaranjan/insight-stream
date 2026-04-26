@@ -184,14 +184,16 @@ function ResultsSkeleton() {
 }
 
 function PlaylistView({ playlistId, title }: { playlistId: string; title: string }) {
+  const [activeIndex, setActiveIndex] = useState(0);
   const { data, isLoading } = useQuery({
     queryKey: ["playlist-view", playlistId],
     queryFn: () => getPlaylistItems({ data: { playlistId } }),
     staleTime: 10 * 60 * 1000,
   });
   const items = data?.items ?? [];
-  const first = items[0];
-  const rest = items.slice(1);
+  const active = items[activeIndex] ?? items[0];
+  useEffect(() => setActiveIndex(0), [playlistId]);
+
   return (
     <div className="zen-container-wide py-8 sm:py-10">
       <Link to="/results" search={{ playlistId: "", playlistTitle: "" }} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
@@ -205,23 +207,25 @@ function PlaylistView({ playlistId, title }: { playlistId: string; title: string
       </div>
       {isLoading ? (
         <ResultsSkeleton />
-      ) : !first ? (
+      ) : !active ? (
         <div className="mt-8 zen-card p-6 text-sm text-muted-foreground">No playlist videos available.</div>
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="mt-6 max-w-5xl">
           <div className="min-w-0">
-            <Player videoId={first.videoId} />
-            <h2 className="mt-4 text-xl font-semibold leading-snug text-foreground">{first.title}</h2>
-            <div className="mt-1 text-sm text-muted-foreground">{first.channel}</div>
+            <Player videoId={active.videoId} />
+            <h2 className="mt-4 text-xl font-semibold leading-snug text-foreground">{active.title}</h2>
+            <div className="mt-1 text-sm text-muted-foreground">{active.channel}</div>
           </div>
-          <ol className="zen-card max-h-[70vh] overflow-y-auto divide-y divide-border">
-            {rest.map((it) => (
-              <li key={it.videoId}>
-                <Link
-                  to="/watch/$videoId"
-                  params={{ videoId: it.videoId }}
-                  search={{ title: it.title, channel: it.channel, duration: it.durationSeconds, thumbnail: it.thumbnail, t: 0, intent: "" }}
-                  className="flex items-center gap-3 p-3 text-sm transition-colors hover:bg-accent/30"
+          <ol className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface/40">
+            {items.map((it, index) => (
+              <li key={`${it.videoId}-${index}`}>
+                <button
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className={
+                    "flex w-full items-center gap-3 p-3 text-left text-sm transition-colors hover:bg-accent/30 " +
+                    (active.videoId === it.videoId ? "bg-primary/10" : "")
+                  }
                 >
                   <span className="w-6 shrink-0 text-center text-xs tabular-nums text-muted-foreground">{it.position + 1}</span>
                   <img src={it.thumbnail} alt="" className="aspect-video w-28 rounded object-cover" loading="lazy" />
@@ -229,7 +233,7 @@ function PlaylistView({ playlistId, title }: { playlistId: string; title: string
                     <span className="line-clamp-2 text-foreground">{it.title}</span>
                     <span className="mt-1 block text-xs text-muted-foreground">{formatDuration(it.durationSeconds)}</span>
                   </span>
-                </Link>
+                </button>
               </li>
             ))}
           </ol>

@@ -258,7 +258,7 @@ function WatchPage() {
   };
 
   const share = async () => {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const url = typeof window !== "undefined" ? window.location.href : `https://www.youtube.com/watch?v=${videoId}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: meta?.title || search.title || "ZenTube", url });
@@ -266,7 +266,14 @@ function WatchPage() {
         await navigator.clipboard.writeText(url);
         toast.success("Link copied");
       }
-    } catch {}
+    } catch {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied");
+      } catch {
+        toast.error("Could not share this video");
+      }
+    }
   };
 
   const sendFeedback = async (kind: "helpful" | "not_useful") => {
