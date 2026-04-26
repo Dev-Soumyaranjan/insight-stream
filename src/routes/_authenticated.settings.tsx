@@ -200,7 +200,7 @@ function SettingsPage() {
               {(Object.keys(MODES) as Mode[]).map((m) => (
                 <Chip
                   key={m}
-                  active={prefs.preferred_intent === m}
+                  active={prefs.preferred_intent === modeToCloudIntent(m)}
                   onClick={() => setPrefs({ ...prefs, preferred_intent: modeToCloudIntent(m) })}
                 >
                   {MODES[m].emoji} {MODES[m].label}
