@@ -674,7 +674,7 @@ function SettingsRow({ active, onClick, children }: { active: boolean; onClick: 
   return (
     <button
       onClick={onClick}
-      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-[oklch(0.82_0.12_158)]" : "")}
+      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-primary" : "")}
     >
       <span>{children}</span>
       {active && <span>✓</span>}
