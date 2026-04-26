@@ -3,10 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionStateProvider } from "@/contexts/SessionStateContext";
-import { lovable } from "@/integrations/lovable";
-import { Leaf, LayoutDashboard, Settings, LogIn, LogOut, BookmarkIcon, History, StickyNote, UserCircle, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Leaf, LayoutDashboard, Settings, LogIn, LogOut, BookmarkIcon, History, StickyNote } from "lucide-react";
 
 import appCss from "../styles.css?url";
 
@@ -52,11 +49,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
-      <body suppressHydrationWarning>
+      <body>
         {children}
         <Scripts />
       </body>
@@ -66,23 +63,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Leaf className="h-5 w-5 text-primary" />
-          <span>ZenTube</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -98,34 +78,9 @@ function RootComponent() {
 }
 
 function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { location } = useRouterState();
   const onAuthPage = location.pathname.startsWith("/login");
-  const [accountOpen, setAccountOpen] = useState(false);
-  const accountRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const onPointerDown = (event: MouseEvent) => {
-      if (accountRef.current && !accountRef.current.contains(event.target as Node)) setAccountOpen(false);
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
-  }, []);
-
-  const signInWithGoogle = async (switchAccount = false) => {
-    setAccountOpen(false);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + location.href,
-        extraParams: switchAccount ? { prompt: "select_account" } : undefined,
-      });
-      if (result.error) toast.error(result.error.message || "Google sign-in failed");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
-    }
-  };
-
-  const profileImage = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -137,7 +92,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <span className="font-semibold tracking-tight">ZenTube</span>
             </Link>
             <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-              {!loading && user && (
+              {user ? (
                 <>
                   <Link to="/dashboard" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground" activeProps={{ className: "text-foreground bg-accent" }}>
                     <LayoutDashboard className="h-4 w-4" /> <span className="hidden sm:inline">Insights</span>
@@ -151,52 +106,21 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   <Link to="/history" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground" activeProps={{ className: "text-foreground bg-accent" }}>
                     <History className="h-4 w-4" /> <span className="hidden sm:inline">History</span>
                   </Link>
+                  <Link to="/settings" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground" activeProps={{ className: "text-foreground bg-accent" }}>
+                    <Settings className="h-4 w-4" /> <span className="hidden sm:inline">Settings</span>
+                  </Link>
+                  <button
+                    onClick={() => signOut()}
+                    className="ml-1 flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Sign out</span>
+                  </button>
                 </>
+              ) : (
+                <Link to="/login" search={{ redirect: "/" }} className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:opacity-90">
+                  <LogIn className="h-4 w-4" /> Sign in
+                </Link>
               )}
-              <div ref={accountRef} className="relative ml-1">
-                <button
-                  type="button"
-                  onClick={() => setAccountOpen((open) => !open)}
-                  className="flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2 py-1.5 text-foreground hover:bg-accent"
-                  aria-haspopup="menu"
-                  aria-expanded={accountOpen}
-                >
-                  {profileImage ? (
-                    <img src={profileImage} alt="" className="h-6 w-6 rounded-full object-cover" referrerPolicy="no-referrer" />
-                  ) : (
-                    <UserCircle className="h-6 w-6 text-muted-foreground" />
-                  )}
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-                {accountOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-popover/95 p-1 shadow-2xl backdrop-blur">
-                    {!loading && user ? (
-                      <>
-                        <div className="px-3 py-3">
-                          <div className="truncate text-sm font-medium text-foreground">{user.user_metadata?.full_name || user.email}</div>
-                          <div className="truncate text-xs text-muted-foreground">{user.email}</div>
-                        </div>
-                        <Link to="/settings" onClick={() => setAccountOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-accent">
-                          <Settings className="h-4 w-4" /> Settings
-                        </Link>
-                        <button onClick={() => signInWithGoogle(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent">
-                          <LogIn className="h-4 w-4" /> Switch account
-                        </button>
-                        <button onClick={() => { setAccountOpen(false); void signOut(); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent">
-                          <LogOut className="h-4 w-4" /> Sign out
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="px-3 py-3 text-sm text-muted-foreground">Sign in to save your history, notes, library, and insights.</div>
-                        <button onClick={() => signInWithGoogle(false)} className="flex w-full items-center gap-2 rounded-lg bg-primary px-3 py-2 text-left text-sm font-medium text-primary-foreground hover:opacity-90">
-                          <LogIn className="h-4 w-4" /> Sign in with Google
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
             </nav>
           </div>
         </header>

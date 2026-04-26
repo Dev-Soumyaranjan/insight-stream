@@ -42,13 +42,13 @@ function RefinePage() {
   const submit = () => {
     setMode(m);
     setRefinement({ mode: m, freeform: freeform.trim(), chips });
-    navigate({ to: "/results", search: { playlistId: "", playlistTitle: "" } });
+    navigate({ to: "/results" });
   };
 
   const skip = () => {
     setMode(m);
     setRefinement({ mode: m, freeform: "", chips: [] });
-    navigate({ to: "/results", search: { playlistId: "", playlistTitle: "" } });
+    navigate({ to: "/results" });
   };
 
   return (

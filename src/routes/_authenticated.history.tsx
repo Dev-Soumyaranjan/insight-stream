@@ -12,13 +12,15 @@ export const Route = createFileRoute("/_authenticated/history")({
 
 type H = {
   id: string;
-  youtube_video_id: string;
-  title: string;
-  channel_title: string;
-  thumbnail_url: string | null;
-  final_intent: string;
+  video_id: string;
+  title: string | null;
+  channel: string | null;
+  thumbnail: string | null;
+  mode: string;
+  final_intent: string | null;
   watched_at: string;
-  watched_duration: number;
+  watch_seconds: number;
+  effective_seconds: number;
 };
 
 function HistoryPage() {
@@ -28,8 +30,8 @@ function HistoryPage() {
   useEffect(() => {
     if (!user) return;
     supabase
-      .from("video_history")
-      .select("id, youtube_video_id, title, channel_title, thumbnail_url, final_intent, watched_at, watched_duration")
+      .from("watch_history")
+      .select("id, video_id, title, channel, thumbnail, mode, final_intent, watched_at, watch_seconds, effective_seconds")
       .eq("user_id", user.id)
       .order("watched_at", { ascending: false })
       .limit(100)
@@ -52,27 +54,27 @@ function HistoryPage() {
           <div className="zen-card p-6 text-sm text-muted-foreground">No history yet.</div>
         ) : (
           items.map((it) => {
-            const intent = it.final_intent === "Learning" ? "learn" : it.final_intent === "Entertainment" ? "relax" : "find" as Mode;
+            const intent = (it.final_intent || it.mode) as Mode;
             const m = MODES[intent];
             return (
               <Link
                 key={it.id}
                 to="/watch/$videoId"
-                params={{ videoId: it.youtube_video_id }}
+                params={{ videoId: it.video_id }}
                 search={{
                   title: it.title || "",
-                  channel: it.channel_title || "",
+                  channel: it.channel || "",
                   duration: 0,
-                  thumbnail: it.thumbnail_url || "",
+                  thumbnail: it.thumbnail || "",
                   t: 0,
                   intent: intent,
                 }}
                 className="zen-card zen-card-hover flex items-center gap-4 p-3 sm:p-4"
               >
                 <div className="aspect-video w-32 shrink-0 overflow-hidden rounded bg-muted sm:w-44">
-                  {it.thumbnail_url && (
+                  {it.thumbnail && (
                     <img
-                      src={it.thumbnail_url}
+                      src={it.thumbnail}
                       alt=""
                       className="h-full w-full object-cover"
                       loading="lazy"
@@ -85,11 +87,11 @@ function HistoryPage() {
                     {it.title || "Untitled"}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span>{it.channel_title}</span>
+                    <span>{it.channel}</span>
                     <span>·</span>
                     <span>{m ? `${m.emoji} ${m.label}` : intent}</span>
                     <span>·</span>
-                    <span>{formatDuration(it.watched_duration)} watched</span>
+                    <span>{formatDuration(it.effective_seconds || it.watch_seconds)} watched</span>
                     <span>·</span>
                     <span>{new Date(it.watched_at).toLocaleString()}</span>
                   </div>

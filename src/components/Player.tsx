@@ -444,12 +444,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
     >
       <div
         ref={mountRef}
-        className="zen-yt-mount zen-yt-shield absolute inset-0 h-full w-full"
-      />
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute bottom-8 right-3 z-10 h-9 w-44 rounded-md bg-black/80 blur-[1px]"
+        className="zen-yt-mount absolute inset-0 h-full w-full"
       />
 
       {/* Click-to-toggle overlay (excludes the controls area) */}
@@ -498,16 +493,46 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
         </div>
       )}
 
-      {/* Top utility controls + bottom timeline */}
+      {/* Bottom controls */}
       {!unavailable && (
-        <>
-          <div
-            className={
-              "absolute inset-x-0 top-0 z-30 flex justify-end px-3 pt-3 transition-opacity duration-200 " +
-              (showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none")
-            }
-          >
-            <div className="relative flex items-center gap-1 rounded-full bg-black/70 px-1.5 py-1 text-white shadow-2xl backdrop-blur">
+        <div
+          className={
+            "absolute inset-x-0 bottom-0 z-30 px-3 pt-12 pb-2 bg-gradient-to-t from-black/95 via-black/60 to-transparent transition-opacity duration-200 " +
+            (showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none")
+          }
+        >
+          {/* Progress bar */}
+          <div className="group relative mb-2 h-4 cursor-pointer" onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            seek(pct * duration);
+          }}>
+            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/25 transition-all group-hover:h-1.5">
+              <div
+                className="absolute left-0 top-0 h-full rounded-full bg-[oklch(0.78_0.12_158)]"
+                style={{ width: `${progressPct}%` }}
+              />
+              <div
+                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow transition-opacity group-hover:opacity-100"
+                style={{ left: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Controls row */}
+          <div className="flex items-center justify-between gap-2 text-white">
+            <div className="flex items-center gap-1">
+              <CtrlBtn label={playing ? "Pause (space)" : "Play (space)"} onClick={togglePlay}>
+                {playing ? <Pause className="h-5 w-5 fill-white" /> : <Play className="h-5 w-5 fill-white" />}
+              </CtrlBtn>
+              <CtrlBtn label="Back 10s (←)" onClick={() => skip(-10)}>
+                <RotateCcw className="h-5 w-5" />
+              </CtrlBtn>
+              <CtrlBtn label="Forward 10s (→)" onClick={() => skip(10)}>
+                <RotateCw className="h-5 w-5" />
+              </CtrlBtn>
+
+              {/* Volume */}
               <div className="group flex items-center">
                 <CtrlBtn label={muted ? "Unmute (m)" : "Mute (m)"} onClick={toggleMute}>
                   <VolumeIcon className="h-5 w-5" />
@@ -519,16 +544,23 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
                   step={1}
                   value={muted ? 0 : volume}
                   onChange={(e) => changeVolume(parseInt(e.target.value, 10))}
-                  className="zen-vol ml-1 w-20"
+                  className="zen-vol w-0 transition-[width] duration-200 group-hover:w-20 group-hover:ml-1"
                   aria-label="Volume"
                 />
               </div>
+
+              <span className="ml-2 select-none tabular-nums text-xs text-white/90">
+                {fmt(current)} / {fmt(duration)}
+              </span>
+            </div>
+
+            <div className="relative flex items-center gap-1">
               <CtrlBtn
                 label={ccAvailable ? (activeCaption ? "Captions on" : "Captions off") : "No captions available"}
                 onClick={toggleCC}
                 disabled={!ccAvailable}
               >
-                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-primary" : "")} />
+                <Subtitles className={"h-5 w-5 " + (activeCaption ? "text-[oklch(0.78_0.12_158)]" : "")} />
               </CtrlBtn>
               <CtrlBtn label="Settings" onClick={() => setSettingsOpen((v) => !v)}>
                 <SettingsIcon className="h-5 w-5" />
@@ -538,7 +570,7 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
               </CtrlBtn>
 
               {settingsOpen && (
-                <div className="absolute right-0 top-12 w-60 overflow-hidden rounded-lg border border-white/10 bg-black/95 text-sm text-white shadow-2xl backdrop-blur">
+                <div className="absolute bottom-12 right-0 w-60 overflow-hidden rounded-lg border border-white/10 bg-black/95 text-sm text-white shadow-2xl backdrop-blur">
                   <div className="flex border-b border-white/10">
                     <SettingsTab active={settingsTab === "speed"} onClick={() => setSettingsTab("speed")}>Speed</SettingsTab>
                     <SettingsTab active={settingsTab === "quality"} onClick={() => setSettingsTab("quality")}>Quality</SettingsTab>
@@ -586,44 +618,10 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
               )}
             </div>
           </div>
-
-          <div
-            className={
-              "absolute inset-x-0 bottom-0 z-30 px-3 pt-16 pb-2 bg-gradient-to-t from-black/95 via-black/55 to-transparent transition-opacity duration-200 " +
-              (showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none")
-            }
-          >
-            <div className="group relative mb-2 h-4 cursor-pointer" onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const pct = (e.clientX - rect.left) / rect.width;
-              seek(pct * duration);
-            }}>
-              <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/25 transition-all group-hover:h-1.5">
-                <div className="absolute left-0 top-0 h-full rounded-full bg-primary" style={{ width: `${progressPct}%` }} />
-                <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow transition-opacity group-hover:opacity-100" style={{ left: `${progressPct}%` }} />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1 text-white">
-              <CtrlBtn label={playing ? "Pause (space)" : "Play (space)"} onClick={togglePlay}>
-                {playing ? <Pause className="h-5 w-5 fill-white" /> : <Play className="h-5 w-5 fill-white" />}
-              </CtrlBtn>
-              <CtrlBtn label="Back 10s (←)" onClick={() => skip(-10)}>
-                <RotateCcw className="h-5 w-5" />
-              </CtrlBtn>
-              <CtrlBtn label="Forward 10s (→)" onClick={() => skip(10)}>
-                <RotateCw className="h-5 w-5" />
-              </CtrlBtn>
-              <span className="ml-2 select-none tabular-nums text-xs text-white/90">
-                {fmt(current)} / {fmt(duration)}
-              </span>
-            </div>
-          </div>
-        </>
+        </div>
       )}
 
       <style>{`
-        .zen-yt-shield iframe { pointer-events: none; }
         .zen-vol {
           appearance: none;
           height: 4px;
@@ -684,7 +682,7 @@ function SettingsRow({ active, onClick, children }: { active: boolean; onClick: 
   return (
     <button
       onClick={onClick}
-      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-primary" : "")}
+      className={"flex w-full items-center justify-between px-3 py-1.5 text-left hover:bg-white/10 " + (active ? "text-[oklch(0.82_0.12_158)]" : "")}
     >
       <span>{children}</span>
       {active && <span>✓</span>}

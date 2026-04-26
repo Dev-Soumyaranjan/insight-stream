@@ -4,38 +4,25 @@ import { memo, useEffect, useState } from "react";
 import { searchVideos, getPlaylistItems, type ResultPlaylist } from "@/server/youtube.functions";
 import { useSessionState } from "@/contexts/SessionStateContext";
 import { formatDuration, MODES, detectMismatch, type Mode, type ResultVideo } from "@/lib/intent";
-import { Player } from "@/components/Player";
 import { ArrowLeft, RefreshCw, Sliders, Search as SearchIcon, AlertCircle, ListVideo, ChevronDown, Play } from "lucide-react";
 
 export const Route = createFileRoute("/results")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    playlistId: typeof s.playlistId === "string" ? s.playlistId : "",
-    playlistTitle: typeof s.playlistTitle === "string" ? s.playlistTitle : "",
-  }),
   head: () => ({ meta: [{ title: "Results — ZenTube" }] }),
   component: ResultsPage,
 });
 
 function ResultsPage() {
-  const routeSearch = Route.useSearch();
   const { mode, refinement, query, setMode } = useSessionState();
   const navigate = useNavigate();
   const [variation, setVariation] = useState(0);
   const [refineText, setRefineText] = useState("");
-  const [sort, setSort] = useState<"smart" | "relevance" | "latest">("smart");
-  const [duration, setDuration] = useState<"any" | "short" | "medium" | "long">("any");
-  const [pageToken, setPageToken] = useState<string | undefined>();
 
   useEffect(() => {
-    if (!routeSearch.playlistId && (!mode || !query)) navigate({ to: "/" });
-  }, [mode, query, navigate, routeSearch.playlistId]);
-
-  if (routeSearch.playlistId) {
-    return <PlaylistView playlistId={routeSearch.playlistId} title={routeSearch.playlistTitle} />;
-  }
+    if (!mode || !query) navigate({ to: "/" });
+  }, [mode, query, navigate]);
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["search", mode, query, refinement?.chips, refinement?.freeform, variation, sort, duration, pageToken],
+    queryKey: ["search", mode, query, refinement?.chips, refinement?.freeform, variation],
     enabled: !!mode && !!query,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -48,9 +35,6 @@ function ResultsPage() {
           chips: refinement?.chips ?? [],
           freeform: [refinement?.freeform ?? "", refineText].filter(Boolean).join(" "),
           variation,
-          sort,
-          duration,
-          pageToken,
         },
       }),
   });
@@ -67,10 +51,7 @@ function ResultsPage() {
             <ArrowLeft className="h-4 w-4" /> New search
           </Link>
           <button
-            onClick={() => {
-              if (data?.nextPageToken) setPageToken(data.nextPageToken);
-              else setVariation((v) => v + 1);
-            }}
+            onClick={() => setVariation((v) => v + 1)}
             disabled={isFetching}
             className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm hover:bg-accent disabled:opacity-50"
             title="Show different relevant videos"
@@ -94,20 +75,14 @@ function ResultsPage() {
             </div>
           )}
 
-          {(data?.contextMessage || data?.effectiveQuery) && (
+          {data?.effectiveQuery && (
             <div className="mt-3 flex items-start gap-2 rounded-md border border-border/60 bg-surface/40 px-3 py-2 text-xs text-muted-foreground">
               <SearchIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
               <span>
-                <span className="text-foreground">{data.contextMessage}</span>
-                {data.effectiveQuery ? <> · Query: <span className="text-foreground">{data.effectiveQuery}</span></> : null}
+                Searching YouTube for: <span className="text-foreground">{data.effectiveQuery}</span>
               </span>
             </div>
           )}
-
-          <div className="mt-3 flex flex-wrap gap-2 text-xs">
-            <FilterGroup label="Sort by" value={sort} onChange={(v) => { setSort(v); setPageToken(undefined); setVariation(0); }} options={["smart", "relevance", "latest"]} />
-            <FilterGroup label="Duration" value={duration} onChange={(v) => { setDuration(v); setPageToken(undefined); setVariation(0); }} options={["any", "short", "medium", "long"]} />
-          </div>
 
           {mismatch.mismatched && mismatch.suggested && (
             <div className="mt-3 flex items-start gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
@@ -135,7 +110,7 @@ function ResultsPage() {
             />
             {refineText && (
               <button
-                onClick={() => { setPageToken(undefined); setVariation(0); refetch(); }}
+                onClick={() => refetch()}
                 className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:opacity-90"
               >
                 Apply
@@ -178,86 +153,6 @@ function ResultsSkeleton() {
             <div className="zen-skeleton h-3 w-5/6" />
           </div>
         </div>
-      ))}
-    </div>
-  );
-}
-
-function PlaylistView({ playlistId, title }: { playlistId: string; title: string }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { data, isLoading } = useQuery({
-    queryKey: ["playlist-view", playlistId],
-    queryFn: () => getPlaylistItems({ data: { playlistId } }),
-    staleTime: 10 * 60 * 1000,
-  });
-  const items = data?.items ?? [];
-  const active = items[activeIndex] ?? items[0];
-  useEffect(() => setActiveIndex(0), [playlistId]);
-
-  return (
-    <div className="zen-container-wide py-8 sm:py-10">
-      <Link to="/results" search={{ playlistId: "", playlistTitle: "" }} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to results
-      </Link>
-      <div className="mt-6">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs uppercase tracking-wider text-primary">
-          <ListVideo className="h-3.5 w-3.5" /> Playlist focus mode
-        </div>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{title || "Playlist"}</h1>
-      </div>
-      {isLoading ? (
-        <ResultsSkeleton />
-      ) : !active ? (
-        <div className="mt-8 zen-card p-6 text-sm text-muted-foreground">No playlist videos available.</div>
-      ) : (
-        <div className="mt-6 max-w-5xl">
-          <div className="min-w-0">
-            <Player videoId={active.videoId} />
-            <h2 className="mt-4 text-xl font-semibold leading-snug text-foreground">{active.title}</h2>
-            <div className="mt-1 text-sm text-muted-foreground">{active.channel}</div>
-          </div>
-          <ol className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface/40">
-            {items.map((it, index) => (
-              <li key={`${it.videoId}-${index}`}>
-                <button
-                  type="button"
-                  onClick={() => setActiveIndex(index)}
-                  className={
-                    "flex w-full items-center gap-3 p-3 text-left text-sm transition-colors hover:bg-accent/30 " +
-                    (active.videoId === it.videoId ? "bg-primary/10" : "")
-                  }
-                >
-                  <span className="w-6 shrink-0 text-center text-xs tabular-nums text-muted-foreground">{it.position + 1}</span>
-                  <img src={it.thumbnail} alt="" className="aspect-video w-28 rounded object-cover" loading="lazy" />
-                  <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 text-foreground">{it.title}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{formatDuration(it.durationSeconds)}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FilterGroup<T extends string>({
-  label, value, onChange, options,
-}: { label: string; value: T; onChange: (value: T) => void; options: T[] }) {
-  return (
-    <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/60 p-1">
-      <span className="px-2 text-muted-foreground">{label}</span>
-      {options.map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={"rounded-full px-2.5 py-1 capitalize transition-colors " + (value === option ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground")}
-        >
-          {option}
-        </button>
       ))}
     </div>
   );
@@ -356,9 +251,8 @@ function PlaylistCard({ p }: { p: ResultPlaylist }) {
 
   return (
     <div className="zen-card overflow-hidden">
-      <Link
-        to="/results"
-        search={{ playlistId: p.playlistId, playlistTitle: p.title }}
+      <button
+        onClick={() => setOpen((o) => !o)}
         className="flex w-full flex-col gap-4 p-4 text-left transition-colors hover:bg-accent/30 sm:flex-row sm:p-5"
       >
         <div className="relative shrink-0 overflow-hidden rounded-md bg-muted sm:w-64">
@@ -382,11 +276,11 @@ function PlaylistCard({ p }: { p: ResultPlaylist }) {
           <div className="mt-1 text-sm text-muted-foreground">{p.channel}</div>
           <p className="mt-2 text-sm text-muted-foreground">{p.reason}</p>
           <div className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
-            <Play className="h-3.5 w-3.5" />
-            Open focused playlist
+            <ChevronDown className={"h-3.5 w-3.5 transition-transform " + (open ? "rotate-180" : "")} />
+            {open ? "Hide videos" : "View videos"}
           </div>
         </div>
-      </Link>
+      </button>
 
       {open && (
         <div className="border-t border-border bg-surface/40">
