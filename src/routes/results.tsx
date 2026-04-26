@@ -194,7 +194,7 @@ function PlaylistView({ playlistId, title }: { playlistId: string; title: string
   const rest = items.slice(1);
   return (
     <div className="zen-container-wide py-8 sm:py-10">
-      <Link to="/results" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link to="/results" search={{ playlistId: "", playlistTitle: "" }} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Back to results
       </Link>
       <div className="mt-6">
