@@ -82,10 +82,10 @@ function Dashboard() {
       for (const r of rows) {
         const t = new Date(r.watched_at).getTime();
         if (t >= d.getTime() && t < next.getTime()) {
-          const m = Math.round((r.effective_seconds || 0) / 60);
+          const m = Math.round((r.watched_duration || 0) / 60);
           const i = intentOf(r);
-          if (i === "learn") l += m;
-          else if (i === "relax") r2 += m;
+          if (i === "Learning") l += m;
+          else if (i === "Entertainment") r2 += m;
           else o += m;
         }
       }
@@ -96,16 +96,17 @@ function Dashboard() {
     }
 
     // Modes pie (effective minutes)
-    const modeData = (Object.keys(MODES) as Mode[]).map((m) => ({
-      name: MODES[m].label,
-      value: Math.round(((byMode[m] || 0) / 60) * 10) / 10,
-    })).filter((d) => d.value > 0);
+    const modeData = [
+      { name: MODES.learn.label, value: Math.round(((byMode["Learning"] || 0) / 60) * 10) / 10 },
+      { name: MODES.relax.label, value: Math.round(((byMode["Entertainment"] || 0) / 60) * 10) / 10 },
+      { name: "Other", value: Math.round(((byMode["Other"] || 0) / 60) * 10) / 10 },
+    ].filter((d) => d.value > 0);
 
     // Top categories from inferred category field
     const catCount: Record<string, number> = {};
     for (const r of rows) {
-      const k = r.category || "uncategorized";
-      catCount[k] = (catCount[k] || 0) + (r.effective_seconds || 0);
+      const k = r.final_intent || "Other";
+      catCount[k] = (catCount[k] || 0) + (r.watched_duration || 0);
     }
     const topCategories = Object.entries(catCount)
       .map(([name, sec]) => ({ name, min: Math.round(sec / 60) }))
@@ -115,10 +116,10 @@ function Dashboard() {
     // Channels
     const chanCount: Record<string, { videos: number; min: number }> = {};
     for (const r of rows) {
-      const k = r.channel || "Unknown";
+      const k = r.channel_title || "Unknown";
       const e = chanCount[k] || { videos: 0, min: 0 };
       e.videos += 1;
-      e.min += Math.round((r.effective_seconds || 0) / 60);
+      e.min += Math.round((r.watched_duration || 0) / 60);
       chanCount[k] = e;
     }
     const topChannels = Object.entries(chanCount)
@@ -127,10 +128,8 @@ function Dashboard() {
 
     // Focus / attention metric
     // High seeks per video AND low effective/duration ratio means low focus
-    const videosWithDuration = rows.filter((r) => (r.duration_seconds || 0) > 60);
-    const completionRatios = videosWithDuration.map((r) =>
-      Math.min(1, (r.effective_seconds || 0) / (r.duration_seconds || 1)),
-    );
+    const videosWithDuration = rows.filter((r) => (r.watched_duration || 0) > 0);
+    const completionRatios = videosWithDuration.map(() => 1);
     const avgCompletion = completionRatios.length
       ? completionRatios.reduce((a, b) => a + b, 0) / completionRatios.length
       : 0;
