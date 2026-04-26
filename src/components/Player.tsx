@@ -471,16 +471,8 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
           <AlertTriangle className="h-8 w-8 text-white/70" />
           <div className="text-base font-medium">This video can't be played here</div>
           <p className="max-w-md text-sm text-white/60">
-            The owner has disabled embedded playback. You can still watch it on YouTube.
+            The owner has disabled embedded playback, so ZenTube won't open an external YouTube rabbit hole from here.
           </p>
-          <a
-            href={`https://www.youtube.com/watch?v=${videoId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-medium text-black hover:opacity-90"
-          >
-            <ExternalLink className="h-4 w-4" /> Watch on YouTube
-          </a>
         </div>
       )}
 
