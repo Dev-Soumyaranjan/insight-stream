@@ -300,7 +300,7 @@ export const searchVideos = createServerFn({ method: "POST" })
     const built = buildSearchQuery(data);
     const limit = data.maxResults ?? (data.mode === "find" ? 5 : data.mode === "explore" ? 5 : 7);
     const searchParams = new URLSearchParams({ part: "snippet", q: built.q, maxResults: "25", type: "video", safeSearch: "moderate", order: built.order, key: apiKey });
-    if (built.pageToken) searchParams.set("pageToken", built.pageToken);
+    if (data.pageToken) searchParams.set("pageToken", data.pageToken);
     if (built.videoDuration && built.videoDuration !== "any") searchParams.set("videoDuration", built.videoDuration);
     if (built.videoCategoryId) searchParams.set("videoCategoryId", built.videoCategoryId);
 
