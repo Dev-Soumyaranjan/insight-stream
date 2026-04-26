@@ -501,11 +501,11 @@ export const Player = forwardRef<PlayerHandle, Props>(function Player(
           }}>
             <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/25 transition-all group-hover:h-1.5">
               <div
-                className="absolute left-0 top-0 h-full rounded-full bg-[oklch(0.78_0.12_158)]"
+                className="absolute left-0 top-0 h-full rounded-full bg-primary"
                 style={{ width: `${progressPct}%` }}
               />
               <div
-                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 shadow transition-opacity group-hover:opacity-100"
+                className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary opacity-0 shadow transition-opacity group-hover:opacity-100"
                 style={{ left: `${progressPct}%` }}
               />
             </div>
