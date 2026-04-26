@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { User, Clock, Palette, Shield, LogOut, Trash2, Mail } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type CloudIntent = "Learning" | "Entertainment" | "Other";
+
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — ZenTube" }] }),
   component: SettingsPage,
@@ -14,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 type Prefs = {
   daily_limit_minutes: number;
-  preferred_intent: string | null;
+  preferred_intent: CloudIntent | null;
   theme: string;
   tracking_enabled: boolean;
 };
@@ -199,7 +201,7 @@ function SettingsPage() {
                 <Chip
                   key={m}
                   active={prefs.preferred_intent === m}
-                  onClick={() => setPrefs({ ...prefs, preferred_intent: m })}
+                  onClick={() => setPrefs({ ...prefs, preferred_intent: modeToCloudIntent(m) })}
                 >
                   {MODES[m].emoji} {MODES[m].label}
                 </Chip>
@@ -251,6 +253,12 @@ function SettingsPage() {
       </div>
     </div>
   );
+}
+
+function modeToCloudIntent(mode: Mode): CloudIntent {
+  if (mode === "learn") return "Learning";
+  if (mode === "relax") return "Entertainment";
+  return "Other";
 }
 
 function SectionGroup({
