@@ -14,7 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          timestamp_seconds: number
+          topic: string | null
+          updated_at: string
+          user_id: string
+          video_id: string
+          video_title: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          timestamp_seconds?: number
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+          video_id: string
+          video_title?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          timestamp_seconds?: number
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+          video_id?: string
+          video_title?: string | null
+        }
+        Relationships: []
+      }
+      preferences: {
+        Row: {
+          created_at: string
+          daily_watch_limit_min: number
+          data_tracking: boolean
+          default_mode: string | null
+          id: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_watch_limit_min?: number
+          data_tracking?: boolean
+          default_mode?: string | null
+          id?: string
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_watch_limit_min?: number
+          data_tracking?: boolean
+          default_mode?: string | null
+          id?: string
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_videos: {
+        Row: {
+          channel: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          thumbnail: string | null
+          title: string | null
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          thumbnail?: string | null
+          title?: string | null
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          thumbnail?: string | null
+          title?: string | null
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: []
+      }
+      video_feedback: {
+        Row: {
+          created_at: string
+          feedback: string
+          id: string
+          updated_at: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: []
+      }
+      watch_history: {
+        Row: {
+          category: string | null
+          channel: string | null
+          created_at: string
+          duration_seconds: number | null
+          effective_seconds: number
+          final_intent: string | null
+          id: string
+          inferred_intent: string | null
+          mode: string
+          seek_count: number
+          thumbnail: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+          video_id: string
+          watch_seconds: number
+          watched_at: string
+        }
+        Insert: {
+          category?: string | null
+          channel?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          effective_seconds?: number
+          final_intent?: string | null
+          id?: string
+          inferred_intent?: string | null
+          mode: string
+          seek_count?: number
+          thumbnail?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          video_id: string
+          watch_seconds?: number
+          watched_at?: string
+        }
+        Update: {
+          category?: string | null
+          channel?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          effective_seconds?: number
+          final_intent?: string | null
+          id?: string
+          inferred_intent?: string | null
+          mode?: string
+          seek_count?: number
+          thumbnail?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          video_id?: string
+          watch_seconds?: number
+          watched_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
