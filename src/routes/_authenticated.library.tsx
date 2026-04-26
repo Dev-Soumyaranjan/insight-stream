@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/library")({
   component: LibraryPage,
 });
 
-type Saved = { id: string; video_id: string; title: string | null; channel: string | null; thumbnail: string | null; duration_seconds: number | null };
+type Saved = { id: string; youtube_video_id: string; title: string; channel_title: string; thumbnail_url: string | null; duration_seconds: number };
 
 function LibraryPage() {
   const { user } = useAuth();
@@ -20,7 +20,7 @@ function LibraryPage() {
     if (!user) return;
     supabase
       .from("saved_videos")
-      .select("id, video_id, title, channel, thumbnail, duration_seconds")
+      .select("id, youtube_video_id, title, channel_title, thumbnail_url, duration_seconds")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }) => setItems((data || []) as Saved[]));
@@ -44,16 +44,16 @@ function LibraryPage() {
             <div key={it.id} className="zen-card zen-card-hover group flex items-center gap-4 p-3 sm:p-4">
               <Link
                 to="/watch/$videoId"
-                params={{ videoId: it.video_id }}
-                search={{ title: it.title || "", channel: it.channel || "", duration: it.duration_seconds || 0, thumbnail: it.thumbnail || "", t: 0, intent: "" }}
+                params={{ videoId: it.youtube_video_id }}
+                search={{ title: it.title || "", channel: it.channel_title || "", duration: it.duration_seconds || 0, thumbnail: it.thumbnail_url || "", t: 0, intent: "" }}
                 className="flex flex-1 items-center gap-4"
               >
                 <div className="aspect-video w-32 shrink-0 overflow-hidden rounded bg-muted sm:w-44">
-                  {it.thumbnail && <img src={it.thumbnail} alt="" className="h-full w-full object-cover" />}
+                  {it.thumbnail_url && <img src={it.thumbnail_url} alt="" className="h-full w-full object-cover" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="line-clamp-2 text-sm font-medium text-foreground sm:text-base">{it.title || "Untitled"}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{it.channel}{it.duration_seconds ? ` · ${formatDuration(it.duration_seconds)}` : ""}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{it.channel_title}{it.duration_seconds ? ` · ${formatDuration(it.duration_seconds)}` : ""}</div>
                 </div>
               </Link>
               <button
