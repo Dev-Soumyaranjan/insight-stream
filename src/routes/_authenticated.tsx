@@ -1,28 +1,25 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-
-export const Route = createFileRoute("/_authenticated")({
-  beforeLoad: ({ location }) => {
-    // Auth state is client-only; soft-guard via component below.
-    return { redirectIfAnon: location.href };
-  },
-  component: AuthGate,
-});
-
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+
+export const Route = createFileRoute("/_authenticated")({
+  component: AuthGate,
+});
 
 function AuthGate() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const ctx = Route.useRouteContext();
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate({ to: "/login", search: { redirect: ctx.redirectIfAnon || "/" } });
+      toast.message("Sign in to access this page", {
+        description: "Use the account icon in the top right.",
+      });
+      navigate({ to: "/" });
     }
-  }, [user, loading, navigate, ctx.redirectIfAnon]);
+  }, [user, loading, navigate]);
 
   if (loading || !user) {
     return (
